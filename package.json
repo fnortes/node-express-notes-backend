@@ -1,0 +1,27 @@
+{
+  "name": "node-express-notes-backend",
+  "version": "1.0.0",
+  "description": "Notes API Rest backend with node, express and MongoDB",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "start:dev": "nodemon index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Francisco Nortes Belmonte",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "7.24.0",
+    "nodemon": "2.0.7",
+    "standard": "16.0.3"
+  },
+  "dependencies": {
+    "cors": "2.8.5",
+    "express": "4.17.1"
+  },
+  "eslintConfig": {
+    "extends": "./node_modules/standard/eslintrc.json"
+  }
+}

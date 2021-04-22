@@ -1,0 +1,23 @@
+POST http://localhost:3001/api/notes
+Content-Type: application/json
+
+{
+  "content": "Nota creada desde Rest Client",
+  "important": true
+}
+
+###
+POST http://localhost:3001/api/notes
+Content-Type: application/json
+
+{
+  "content": "Nota creada desde Rest Client"
+}
+
+###
+POST http://localhost:3001/api/notes
+Content-Type: application/json
+
+{
+  "important": true
+}
