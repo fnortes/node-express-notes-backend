@@ -25,21 +25,22 @@ app.get('/api/notes', async (req, res) => {
   res.json(notes)
 })
 
-app.get('/api/notes/:id', (req, res, next) => {
+app.get('/api/notes/:id', async (req, res, next) => {
   const { id } = req.params
 
-  Note.findById(id)
-    .then(result => {
-      if (result === null) {
-        next()
-      } else {
-        res.json(result)
-      }
-    })
-    .catch(next)
+  try {
+    const result = await Note.findById(id)
+    if (result === null) {
+      next()
+    } else {
+      res.json(result)
+    }
+  } catch (err) {
+    next(err)
+  }
 })
 
-app.put('/api/notes/:id', (req, res, next) => {
+app.put('/api/notes/:id', async (req, res, next) => {
   const { id } = req.params
   const note = req.body
 
@@ -48,11 +49,17 @@ app.put('/api/notes/:id', (req, res, next) => {
     important: note.important
   }
 
-  Note.findByIdAndUpdate(id, newNoteInfo, { new: true })
-    .then(result => {
+  try {
+    const result = await Note.findByIdAndUpdate(id, newNoteInfo, { new: true })
+
+    if (result === null) {
+      next()
+    } else {
       res.json(result)
-    })
-    .catch(next)
+    }
+  } catch (err) {
+    next(err)
+  }
 })
 
 app.delete('/api/notes/:id', async (req, res, next) => {
