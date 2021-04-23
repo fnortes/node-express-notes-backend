@@ -21,7 +21,7 @@ const getAllContentFromNotes = async () => {
 
   return {
     response,
-    contents: response.body.map(note => note.content)
+    contents: response.body.map((note) => note.content)
   }
 }
 

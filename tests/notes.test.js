@@ -14,14 +14,14 @@ beforeEach(async () => {
 
 describe('GET /test', () => {
   test('It is an incorrect route', async () => {
-    await api.get('/test')
-      .expect(404)
+    await api.get('/test').expect(404)
   })
 })
 
 describe('GET /', () => {
   test('Return server is running message', async () => {
-    const response = await api.get('/')
+    const response = await api
+      .get('/')
       .expect(200)
       .expect('Content-Type', /text\/html/)
 
@@ -31,7 +31,8 @@ describe('GET /', () => {
 
 describe('GET /api/notes', () => {
   test('Notes are returned as json', async () => {
-    await api.get('/api/notes')
+    await api
+      .get('/api/notes')
       .expect(200)
       .expect('Content-Type', /application\/json/)
   })
@@ -55,7 +56,8 @@ describe('GET /api/notes/:id', () => {
     const { body: notes } = firstResponse
     const note = notes[0]
 
-    const { body } = await api.get(`/api/notes/${note.id}`)
+    const { body } = await api
+      .get(`/api/notes/${note.id}`)
       .expect(200)
       .expect('Content-Type', /application\/json/)
 
@@ -63,20 +65,20 @@ describe('GET /api/notes/:id', () => {
   })
 
   test('A note that not exist, with malformed id, can not be obtained', async () => {
-    const { body } = await api.get('/api/notes/1234')
+    const { body } = await api
+      .get('/api/notes/1234')
       .expect(400)
       .expect('Content-Type', /application\/json/)
 
-    console.log({ body })
     expect(body.error).toBe('id used is malformed')
   })
 
   test('A note that not exist, with well formed id, can not be obtained', async () => {
-    const { body } = await api.get('/api/notes/6082ae8e83b8fd155a78e395')
+    const { body } = await api
+      .get('/api/notes/6082ae8e83b8fd155a78e395')
       .expect(404)
       .expect('Content-Type', /application\/json/)
 
-    console.log({ body })
     expect(body.error).toBe('Not found')
   })
 })
@@ -92,14 +94,19 @@ describe('PUT /api/notes', () => {
       important: false
     }
 
-    const { body } = await api.put(`/api/notes/${note.id}`).send(noteToUpdate)
+    const { body } = await api
+      .put(`/api/notes/${note.id}`)
+      .send(noteToUpdate)
       .expect(200)
       .expect('Content-Type', /application\/json/)
 
     expect(body.content).toBe(noteToUpdate.content)
     expect(body.important).toBe(noteToUpdate.important)
 
-    const { contents, response: secondResponse } = await getAllContentFromNotes()
+    const {
+      contents,
+      response: secondResponse
+    } = await getAllContentFromNotes()
 
     expect(secondResponse.body).toHaveLength(initialNotes.length)
     expect(contents).toContain(noteToUpdate.content)
@@ -116,7 +123,9 @@ describe('PUT /api/notes', () => {
       date: new Date()
     }
 
-    const { body } = await api.put(`/api/notes/${note.id}`).send(noteToUpdate)
+    const { body } = await api
+      .put(`/api/notes/${note.id}`)
+      .send(noteToUpdate)
       .expect(200)
       .expect('Content-Type', /application\/json/)
 
@@ -124,7 +133,10 @@ describe('PUT /api/notes', () => {
     expect(body.important).toBe(noteToUpdate.important)
     expect(body.date).not.toBe(noteToUpdate.date)
 
-    const { contents, response: secondResponse } = await getAllContentFromNotes()
+    const {
+      contents,
+      response: secondResponse
+    } = await getAllContentFromNotes()
 
     expect(secondResponse.body).toHaveLength(initialNotes.length)
     expect(contents).toContain(noteToUpdate.content)
@@ -136,7 +148,9 @@ describe('PUT /api/notes', () => {
       important: false
     }
 
-    const { body } = await api.put('/api/notes/1234').send(noteToUpdate)
+    const { body } = await api
+      .put('/api/notes/1234')
+      .send(noteToUpdate)
       .expect(400)
       .expect('Content-Type', /application\/json/)
 
@@ -149,7 +163,9 @@ describe('PUT /api/notes', () => {
       important: false
     }
 
-    const { body } = await api.put('/api/notes/6082ae8e83b8fd155a78e395').send(noteToUpdate)
+    const { body } = await api
+      .put('/api/notes/6082ae8e83b8fd155a78e395')
+      .send(noteToUpdate)
       .expect(404)
       .expect('Content-Type', /application\/json/)
 
@@ -163,18 +179,19 @@ describe('DELETE /api/notes/:id', () => {
     const { body: notes } = firstResponse
     const noteToDelete = notes[0]
 
-    await api.delete(`/api/notes/${noteToDelete.id}`)
-      .expect(204)
+    await api.delete(`/api/notes/${noteToDelete.id}`).expect(204)
 
-    const { contents, response: secondResponse } = await getAllContentFromNotes()
+    const {
+      contents,
+      response: secondResponse
+    } = await getAllContentFromNotes()
 
     expect(secondResponse.body).toHaveLength(initialNotes.length - 1)
     expect(contents).not.toContain(noteToDelete.content)
   })
 
   test('A note that do not exist can not be deleted', async () => {
-    await api.delete('/api/notes/1234')
-      .expect(400)
+    await api.delete('/api/notes/1234').expect(400)
 
     const { response } = await getAllContentFromNotes()
 
@@ -190,7 +207,9 @@ describe('POST /api/notes', () => {
       date: new Date()
     }
 
-    await api.post('/api/notes').send(newNote)
+    await api
+      .post('/api/notes')
+      .send(newNote)
       .expect('Content-Type', /application\/json/)
 
     const { contents, response } = await getAllContentFromNotes()
@@ -205,8 +224,7 @@ describe('POST /api/notes', () => {
       date: new Date()
     }
 
-    await api.post('/api/notes').send(newNote)
-      .expect(400)
+    await api.post('/api/notes').send(newNote).expect(400)
 
     const { response } = await getAllContentFromNotes()
 
