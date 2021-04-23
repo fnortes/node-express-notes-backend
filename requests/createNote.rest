@@ -2,7 +2,7 @@ POST http://localhost:3001/api/notes
 Content-Type: application/json
 
 {
-  "content": "Nota creada desde Rest Client",
+  "content": "Nota creada desde Rest Client 2",
   "important": true
 }
 

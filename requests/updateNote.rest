@@ -1,0 +1,7 @@
+PUT http://localhost:3001/api/notes/60818a7c369d780d4c8b5855
+Content-Type: application/json
+
+{
+  "content": "Nota creada desde Rest Client 2",
+  "important": true
+}
