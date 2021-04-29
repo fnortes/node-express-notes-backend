@@ -2,7 +2,8 @@ const {
   api,
   initialNotes,
   getAllContentFromNotes,
-  getAllUsernameFromUsers
+  getAllUsernameFromUsers,
+  getToken
 } = require('./helpers')
 
 describe('GET /test', () => {
@@ -77,6 +78,12 @@ describe('GET /api/notes/:id', () => {
 })
 
 describe('PUT /api/notes', () => {
+  let token = ''
+
+  beforeEach(async () => {
+    token = await getToken()
+  })
+
   test('A note can be updated', async () => {
     const { response: firstResponse } = await getAllContentFromNotes()
     const { body: notes } = firstResponse
@@ -89,6 +96,7 @@ describe('PUT /api/notes', () => {
 
     const { body } = await api
       .put(`/api/notes/${note.id}`)
+      .set('Authorization', token)
       .send(noteToUpdate)
       .expect(200)
       .expect('Content-Type', /application\/json/)
@@ -118,6 +126,7 @@ describe('PUT /api/notes', () => {
 
     const { body } = await api
       .put(`/api/notes/${note.id}`)
+      .set('Authorization', token)
       .send(noteToUpdate)
       .expect(200)
       .expect('Content-Type', /application\/json/)
@@ -143,6 +152,7 @@ describe('PUT /api/notes', () => {
 
     const { body } = await api
       .put('/api/notes/1234')
+      .set('Authorization', token)
       .send(noteToUpdate)
       .expect(400)
       .expect('Content-Type', /application\/json/)
@@ -158,6 +168,7 @@ describe('PUT /api/notes', () => {
 
     const { body } = await api
       .put('/api/notes/6082ae8e83b8fd155a78e395')
+      .set('Authorization', token)
       .send(noteToUpdate)
       .expect(404)
       .expect('Content-Type', /application\/json/)
@@ -167,12 +178,21 @@ describe('PUT /api/notes', () => {
 })
 
 describe('DELETE /api/notes/:id', () => {
+  let token = ''
+
+  beforeEach(async () => {
+    token = await getToken()
+  })
+
   test('A note can be deleted', async () => {
     const { response: firstResponse } = await getAllContentFromNotes()
     const { body: notes } = firstResponse
     const noteToDelete = notes[0]
 
-    await api.delete(`/api/notes/${noteToDelete.id}`).expect(204)
+    await api
+      .delete(`/api/notes/${noteToDelete.id}`)
+      .set('Authorization', token)
+      .expect(204)
 
     const {
       contents,
@@ -184,7 +204,7 @@ describe('DELETE /api/notes/:id', () => {
   })
 
   test('A note that not exist, with malformed id, can not be deleted', async () => {
-    await api.delete('/api/notes/1234').expect(400)
+    await api.delete('/api/notes/1234').set('Authorization', token).expect(400)
 
     const { response } = await getAllContentFromNotes()
 
@@ -194,6 +214,7 @@ describe('DELETE /api/notes/:id', () => {
   test('A note that not exist, with well formed id, can not be deleted', async () => {
     const { body } = await api
       .delete('/api/notes/6082ae8e83b8fd155a78e395')
+      .set('Authorization', token)
       .expect(404)
       .expect('Content-Type', /application\/json/)
 
@@ -205,6 +226,12 @@ describe('DELETE /api/notes/:id', () => {
 })
 
 describe('POST /api/notes', () => {
+  let token = ''
+
+  beforeEach(async () => {
+    token = await getToken()
+  })
+
   test('A valid note can be added', async () => {
     const { users } = await getAllUsernameFromUsers()
 
@@ -216,6 +243,7 @@ describe('POST /api/notes', () => {
 
     await api
       .post('/api/notes')
+      .set('Authorization', token)
       .send(newNote)
       .expect('Content-Type', /application\/json/)
 
@@ -231,27 +259,52 @@ describe('POST /api/notes', () => {
       date: new Date()
     }
 
-    await api.post('/api/notes').send(newNote).expect(400)
+    await api
+      .post('/api/notes')
+      .set('Authorization', token)
+      .send(newNote)
+      .expect(400)
 
     const { response } = await getAllContentFromNotes()
 
     expect(response.body).toHaveLength(initialNotes.length)
   })
 
-  test('Note without a valid user is not added', async () => {
+  test('Note without a valid token is not added', async () => {
     const newNote = {
       content: 'New created note',
-      important: true,
-      userId: '6082ae8e83b8fd155a78e395'
+      important: true
     }
 
-    await api
+    const { body } = await api
       .post('/api/notes')
+      .set('Authorization', 'Bearer testToken')
       .send(newNote)
+      .expect(401)
       .expect('Content-Type', /application\/json/)
 
     const { contents, response } = await getAllContentFromNotes()
 
+    expect(body.error).toBe('Token missing or invalid')
+    expect(response.body).toHaveLength(initialNotes.length)
+    expect(contents).not.toContain(newNote.content)
+  })
+
+  test('Note without token is not added', async () => {
+    const newNote = {
+      content: 'New created note',
+      important: true
+    }
+
+    const { body } = await api
+      .post('/api/notes')
+      .send(newNote)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+
+    const { contents, response } = await getAllContentFromNotes()
+
+    expect(body.error).toBe('Token missing or invalid')
     expect(response.body).toHaveLength(initialNotes.length)
     expect(contents).not.toContain(newNote.content)
   })

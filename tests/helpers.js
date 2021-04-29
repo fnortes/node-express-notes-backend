@@ -48,10 +48,22 @@ const getAllUsernameFromUsers = async () => {
   }
 }
 
+const getToken = async () => {
+  const {
+    body: { token }
+  } = await api.post('/api/login').send({
+    username: initialUsers[0].username,
+    password: initialUsers[0].password
+  })
+
+  return `Bearer ${token}`
+}
+
 module.exports = {
   api,
   initialNotes,
   getAllContentFromNotes,
   initialUsers,
-  getAllUsernameFromUsers
+  getAllUsernameFromUsers,
+  getToken
 }

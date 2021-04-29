@@ -1,5 +1,5 @@
-// const bcrypt = require('bcrypt')
 const notesRouter = require('express').Router()
+const userExtractor = require('../middlewares/userExtractor')
 const Note = require('../models/Note')
 const User = require('../models/User')
 
@@ -31,7 +31,7 @@ notesRouter.get('/:id', async (req, res, next) => {
   }
 })
 
-notesRouter.put('/:id', async (req, res, next) => {
+notesRouter.put('/:id', userExtractor, async (req, res, next) => {
   const { id } = req.params
   const note = req.body
 
@@ -53,7 +53,7 @@ notesRouter.put('/:id', async (req, res, next) => {
   }
 })
 
-notesRouter.delete('/:id', async (req, res, next) => {
+notesRouter.delete('/:id', userExtractor, async (req, res, next) => {
   const { id } = req.params
 
   try {
@@ -69,10 +69,9 @@ notesRouter.delete('/:id', async (req, res, next) => {
   }
 })
 
-notesRouter.post('/', async (req, res, next) => {
-  const { content, important = false, userId } = req.body
-  console.log({ content, important, userId })
-
+notesRouter.post('/', userExtractor, async (req, res, next) => {
+  const { content, important = false } = req.body
+  const { userId } = req
   const user = await User.findById(userId)
 
   if (!content) {
