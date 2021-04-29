@@ -1,16 +1,9 @@
-const mongoose = require('mongoose')
-const { server } = require('../index')
-const Note = require('../models/Note')
-const { api, initialNotes, getAllContentFromNotes } = require('./helpers')
-
-beforeEach(async () => {
-  await Note.deleteMany({})
-
-  for (const note of initialNotes) {
-    const noteObject = new Note(note)
-    await noteObject.save()
-  }
-})
+const {
+  api,
+  initialNotes,
+  getAllContentFromNotes,
+  getAllUsernameFromUsers
+} = require('./helpers')
 
 describe('GET /test', () => {
   test('It is an incorrect route', async () => {
@@ -190,21 +183,35 @@ describe('DELETE /api/notes/:id', () => {
     expect(contents).not.toContain(noteToDelete.content)
   })
 
-  test('A note that do not exist can not be deleted', async () => {
+  test('A note that not exist, with malformed id, can not be deleted', async () => {
     await api.delete('/api/notes/1234').expect(400)
 
     const { response } = await getAllContentFromNotes()
 
     expect(response.body).toHaveLength(initialNotes.length)
   })
+
+  test('A note that not exist, with well formed id, can not be deleted', async () => {
+    const { body } = await api
+      .delete('/api/notes/6082ae8e83b8fd155a78e395')
+      .expect(404)
+      .expect('Content-Type', /application\/json/)
+
+    expect(body.error).toBe('Not found')
+
+    const { response } = await getAllContentFromNotes()
+    expect(response.body).toHaveLength(initialNotes.length)
+  })
 })
 
 describe('POST /api/notes', () => {
   test('A valid note can be added', async () => {
+    const { users } = await getAllUsernameFromUsers()
+
     const newNote = {
       content: 'New created note',
       important: true,
-      date: new Date()
+      userId: users[1].id
     }
 
     await api
@@ -230,9 +237,22 @@ describe('POST /api/notes', () => {
 
     expect(response.body).toHaveLength(initialNotes.length)
   })
-})
 
-afterAll(() => {
-  mongoose.connection.close()
-  server.close()
+  test('Note without a valid user is not added', async () => {
+    const newNote = {
+      content: 'New created note',
+      important: true,
+      userId: '6082ae8e83b8fd155a78e395'
+    }
+
+    await api
+      .post('/api/notes')
+      .send(newNote)
+      .expect('Content-Type', /application\/json/)
+
+    const { contents, response } = await getAllContentFromNotes()
+
+    expect(response.body).toHaveLength(initialNotes.length)
+    expect(contents).not.toContain(newNote.content)
+  })
 })
